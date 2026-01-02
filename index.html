@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Theo dõi giao dịch Solana</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .filter-section {
+            background: white;
+            padding: 25px 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card .label {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .table-container {
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .table-header h3 {
+            color: #495057;
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-bottom: 20px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 13px;
+        }
+
+        tbody tr {
+            transition: background 0.3s;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .address {
+            font-family: monospace;
+            font-size: 12px;
+            color: #667eea;
+            cursor: pointer;
+        }
+
+        .address:hover {
+            text-decoration: underline;
+        }
+
+        .sol-amount {
+            font-weight: bold;
+            color: #28a745;
+            font-size: 14px;
+        }
+
+        .signature {
+            font-family: monospace;
+            font-size: 11px;
+            color: #6c757d;
+            cursor: pointer;
+        }
+
+        .signature:hover {
+            color: #667eea;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-transfer {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 15px;
+            border: 1px solid #e9ecef;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination .page-info {
+            padding: 8px 15px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .last-update {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        .storage-info {
+            background: #e7f3ff;
+            padding: 15px;
+            margin: 15px 30px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .storage-info .info {
+            font-size: 13px;
+            color: #004085;
+        }
+
+        .storage-info .clear-btn {
+            padding: 6px 12px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .storage-info .clear-btn:hover {
+            background: #c82333;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #495057;
+        }
+
+        .modal-close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 20px;
+        }
+
+        .modal-close:hover {
+            color: #000;
+        }
+
+        .filter-results {
+            background: #fff3cd;
+            padding: 15px;
+            margin: 15px 30px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            display: none;
+        }
+
+        .filter-results.active {
+            display: block;
+        }
+
+        .filter-results h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Dashboard Theo Dõi Giao Dịch Solana</h1>
+            <p>Theo dõi và phân tích giao dịch chi tiết</p>
+        </div>
+
+        <div class="filter-section">
+            <h3 style="margin-bottom: 15px; color: #495057;">🔍 Lấy dữ liệu giao dịch</h3>
+            
+            <!-- Nhập địa chỉ ví -->
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label>Địa chỉ ví *</label>
+                    <input type="text" id="walletInput" placeholder="Nhập địa chỉ ví Solana" value="5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9">
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn btn-primary" onclick="fetchLatestTransactions()">🔄 Lấy giao dịch 1 ngày gần nhất</button>
+                <button class="btn btn-warning" onclick="showLoadOldModal()">⏳ Lấy giao dịch cũ theo ngày</button>
+                <button class="btn btn-secondary" onclick="clearStorage()">🗑️ Xóa dữ liệu</button>
+            </div>
+
+            <hr style="margin: 25px 0; border: none; border-top: 2px solid #e9ecef;">
+
+            <h3 style="margin-bottom: 15px; color: #495057;">🔍 Lọc dữ liệu đã tải</h3>
+            
+            <!-- Filter -->
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label>SOL từ</label>
+                    <input type="number" id="minSol" placeholder="0" step="0.1" min="0">
+                </div>
+                <div class="filter-group">
+                    <label>SOL đến</label>
+                    <input type="number" id="maxSol" placeholder="Không giới hạn" step="0.1" min="0">
+                </div>
+            </div>
+
+            <div class="filter-grid" style="grid-template-columns: 1fr 1fr; margin-top: 15px;">
+                <div class="filter-group">
+                    <label>📅 From Date</label>
+                    <input type="date" id="fromDate">
+                </div>
+                <div class="filter-group">
+                    <label>📅 To Date</label>
+                    <input type="date" id="toDate">
+                </div>
+            </div>
+            
+            <div class="filter-grid" style="grid-template-columns: 1fr 1fr; margin-top: 15px;">
+                <div class="filter-group">
+                    <label>🕐 From Time (HH:MM)</label>
+                    <input type="time" id="fromTime">
+                </div>
+                <div class="filter-group">
+                    <label>🕐 To Time (HH:MM)</label>
+                    <input type="time" id="toTime">
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn btn-primary" onclick="applyFilters()">Áp dụng Filter</button>
+                <button class="btn btn-secondary" onclick="resetFilters()">Reset Filter</button>
+            </div>
+        </div>
+
+        <!-- Filter Results Banner -->
+        <div id="filterResultsBanner" class="filter-results">
+            <h4>🔍 Kết quả lọc</h4>
+            <div id="filterResultsText"></div>
+        </div>
+
+        <div class="storage-info">
+            <div class="info">
+                💾 Tổng dữ liệu: <strong id="storedCount">0</strong> giao dịch | 
+                📊 Đang hiển thị: <strong id="displayCount">0</strong> giao dịch
+            </div>
+        </div>
+
+        <!-- Filtered Table (appears when filter is applied) -->
+        <div id="filteredTableContainer" style="display: none;">
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>📋 Kết quả lọc</h3>
+                    <button class="btn btn-secondary" onclick="exportData('filtered')">💾 Export CSV</button>
+                </div>
+                <table id="filteredTable">
+                    <thead>
+                        <tr>
+                            <th>Ngày giờ</th>
+                            <th>Loại</th>
+                            <th>Số SOL</th>
+                            <th>Đến địa chỉ</th>
+                            <th>Signature</th>
+                        </tr>
+                    </thead>
+                    <tbody id="filteredTxBody">
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <button onclick="changeFilteredPage(-1)" id="prevFilteredBtn">⬅️ Trước</button>
+                    <span class="page-info">Trang <strong id="currentFilteredPage">1</strong> / <strong id="totalFilteredPages">1</strong></span>
+                    <button onclick="changeFilteredPage(1)" id="nextFilteredBtn">Tiếp ➡️</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="label">Tổng giao dịch</div>
+                <div class="value" id="totalTxs">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Tổng SOL</div>
+                <div class="value" id="totalSol">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Trung bình</div>
+                <div class="value" id="avgSol">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Giao dịch mới nhất</div>
+                <div class="value" id="latestTime">-</div>
+            </div>
+        </div>
+
+        <!-- Main Data Table (auto-refresh) -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3>📊 Dữ liệu Real-time (Tự động cập nhật mỗi 30s)</h3>
+                <button class="btn btn-secondary" onclick="exportData('all')">💾 Export CSV</button>
+            </div>
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Đang tải dữ liệu...</p>
+            </div>
+            <table id="txTable">
+                <thead>
+                    <tr>
+                        <th>Ngày giờ</th>
+                        <th>Loại</th>
+                        <th>Số SOL</th>
+                        <th>Đến địa chỉ</th>
+                        <th>Signature</th>
+                    </tr>
+                </thead>
+                <tbody id="txBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <button onclick="changePage(-1)" id="prevBtn">⬅️ Trước</button>
+            <span class="page-info">Trang <strong id="currentPage">1</strong> / <strong id="totalPages">1</strong></span>
+            <button onclick="changePage(1)" id="nextBtn">Tiếp ➡️</button>
+        </div>
+
+        <div class="last-update" id="lastUpdate"></div>
+    </div>
+
+    <!-- Modal lấy giao dịch cũ -->
+    <div id="oldTxModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeLoadOldModal()">&times;</span>
+            <h3>⏳ Lấy giao dịch cũ theo ngày</h3>
+            
+            <div class="filter-group" style="margin-bottom: 15px;">
+                <label>📅 Chọn ngày cần lấy data</label>
+                <input type="date" id="oldDate">
+            </div>
+            
+            <div class="filter-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="filter-group">
+                    <label>🕐 Từ giờ (HH:MM)</label>
+                    <input type="time" id="oldFromTime" value="00:00">
+                </div>
+                <div class="filter-group">
+                    <label>🕐 Đến giờ (HH:MM)</label>
+                    <input type="time" id="oldToTime" value="23:59">
+                </div>
+            </div>
+            
+            <div class="filter-actions" style="margin-top: 20px;">
+                <button class="btn btn-primary" onclick="fetchOldTransactions()">📥 Lấy dữ liệu</button>
+                <button class="btn btn-secondary" onclick="closeLoadOldModal()">Hủy</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = '372ee7db-c6f7-4b68-9f2b-fd12c97d390b';
+        const STORAGE_KEY = 'solana_transactions';
+        const ITEMS_PER_PAGE_MAIN = 25; // Bảng chính 25/trang
+        const ITEMS_PER_PAGE_FILTERED = 50; // Bảng filter 50/trang
+        const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
+        
+        let allTransactions = [];
+        let filteredTransactions = [];
+        let currentPage = 1;
+        let currentFilteredPage = 1;
+        let autoRefreshTimer = null;
+        let lastTransactionSignature = null;
+        let isFilterActive = false;
+
+        // Load dữ liệu từ localStorage
+        function loadFromStorage() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                allTransactions = JSON.parse(stored);
+                console.log(`📦 Loaded ${allTransactions.length} transactions from storage`);
+            }
+        }
+
+        // Lưu vào localStorage
+        function saveToStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(allTransactions));
+            updateStorageInfo();
+        }
+
+        // Xóa localStorage
+        function clearStorage() {
+            if (confirm('⚠️ Bạn có chắc muốn xóa toàn bộ dữ liệu đã lưu?')) {
+                stopAutoRefresh();
+                localStorage.removeItem(STORAGE_KEY);
+                allTransactions = [];
+                filteredTransactions = [];
+                currentPage = 1;
+                currentFilteredPage = 1;
+                lastTransactionSignature = null;
+                isFilterActive = false;
+                renderMainTable();
+                updateStats();
+                updateStorageInfo();
+                hideFilteredTable();
+                alert('✅ Đã xóa toàn bộ dữ liệu!');
+            }
+        }
+
+        // Cập nhật storage info
+        function updateStorageInfo() {
+            document.getElementById('storedCount').textContent = allTransactions.length;
+            document.getElementById('displayCount').textContent = isFilterActive ? filteredTransactions.length : allTransactions.length;
+        }
+
+        // Auto-refresh function - TỰ ĐỘNG CẬP NHẬT KHÔNG THÔNG BÁO
+        async function checkForNewTransactions() {
+            const wallet = document.getElementById('walletInput').value.trim();
+            if (!wallet || allTransactions.length === 0) return;
+
+            try {
+                const url = `https://api.helius.xyz/v0/addresses/${wallet}/transactions?api-key=${API_KEY}&limit=10`;
+                const response = await fetch(url);
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                if (data.length === 0) return;
+
+                const newestSignature = data[0].signature;
+                if (lastTransactionSignature && newestSignature !== lastTransactionSignature) {
+                    console.log('🔔 Phát hiện giao dịch mới - đang cập nhật tự động...');
+                    
+                    // Tìm giao dịch mới
+                    let newTxs = [];
+                    for (const tx of data) {
+                        if (tx.signature === lastTransactionSignature) break;
+                        newTxs.push(tx);
+                    }
+                    
+                    // Process và thêm vào đầu
+                    const processedNewTxs = processTransactions(newTxs);
+                    const existingSignatures = new Set(allTransactions.map(tx => tx.signature));
+                    const uniqueNewTxs = processedNewTxs.filter(tx => !existingSignatures.has(tx.signature));
+                    
+                    if (uniqueNewTxs.length > 0) {
+                        allTransactions = [...uniqueNewTxs, ...allTransactions];
+                        saveToStorage();
+                        
+                        // Cập nhật bảng chính
+                        renderMainTable();
+                        updateStats();
+                        
+                        console.log(`✅ Đã tự động thêm ${uniqueNewTxs.length} giao dịch mới`);
+                    }
+                }
+                
+                lastTransactionSignature = newestSignature;
+            } catch (error) {
+                console.error('Auto-refresh error:', error);
+            }
+        }
+
+        // Start auto-refresh
+        function startAutoRefresh() {
+            if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+            autoRefreshTimer = setInterval(checkForNewTransactions, AUTO_REFRESH_INTERVAL);
+            console.log('✅ Tự động kiểm tra mỗi 30s');
+        }
+
+        // Stop auto-refresh
+        function stopAutoRefresh() {
+            if (autoRefreshTimer) {
+                clearInterval(autoRefreshTimer);
+                autoRefreshTimer = null;
+            }
+        }
+
+        // Lấy giao dịch 1 ngày gần nhất
+        async function fetchLatestTransactions() {
+            const wallet = document.getElementById('walletInput').value.trim();
+            if (!wallet) {
+                alert('❌ Vui lòng nhập địa chỉ ví!');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+
+            try {
+                // Calculate 1 day ago timestamp
+                const oneDayAgo = Math.floor(Date.now() / 1000) - (24 * 60 * 60);
+                
+                let allFetchedTxs = [];
+                let before = null;
+                let page = 1;
+                let keepFetching = true;
+
+                while (keepFetching) {
+                    let url = `https://api.helius.xyz/v0/addresses/${wallet}/transactions?api-key=${API_KEY}&limit=100`;
+                    if (before) url += `&before=${before}`;
+
+                    console.log(`📥 Fetching page ${page}...`);
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                    
+                    const data = await response.json();
+                    if (data.length === 0) break;
+
+                    // Check if we've reached transactions older than 1 day
+                    const oldestTimestamp = data[data.length - 1].timestamp;
+                    if (oldestTimestamp < oneDayAgo) {
+                        // Filter only transactions from last 24h
+                        const recentTxs = data.filter(tx => tx.timestamp >= oneDayAgo);
+                        allFetchedTxs.push(...recentTxs);
+                        keepFetching = false;
+                        console.log('✅ Đã lấy hết giao dịch trong 1 ngày');
+                    } else {
+                        allFetchedTxs.push(...data);
+                        before = data[data.length - 1].signature;
+                        page++;
+                    }
+
+                    // Safety limit
+                    if (page > 50) break;
+                }
+
+                // Process transactions
+                const newTxs = processTransactions(allFetchedTxs);
+                
+                // Merge with existing data (remove duplicates)
+                const existingSignatures = new Set(allTransactions.map(tx => tx.signature));
+                const uniqueNewTxs = newTxs.filter(tx => !existingSignatures.has(tx.signature));
+                
+                allTransactions = [...uniqueNewTxs, ...allTransactions];
+                allTransactions.sort((a, b) => b.timestamp - a.timestamp);
+
+                if (allTransactions.length > 0) {
+                    lastTransactionSignature = allTransactions[0].signature;
+                }
+
+                saveToStorage();
+                renderMainTable();
+                updateStats();
+                startAutoRefresh();
+                
+                alert(`✅ Đã tải ${uniqueNewTxs.length} giao dịch mới trong 24h gần nhất!`);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Lỗi khi tải dữ liệu: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Show modal lấy giao dịch cũ
+        function showLoadOldModal() {
+            document.getElementById('oldTxModal').style.display = 'block';
+            // Set default date to yesterday
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 2);
+            document.getElementById('oldDate').valueAsDate = yesterday;
+        }
+
+        // Close modal
+        function closeLoadOldModal() {
+            document.getElementById('oldTxModal').style.display = 'none';
+        }
+
+        // Lấy giao dịch cũ theo ngày và giờ
+        async function fetchOldTransactions() {
+            const wallet = document.getElementById('walletInput').value.trim();
+            if (!wallet) {
+                alert('❌ Vui lòng nhập địa chỉ ví!');
+                return;
+            }
+
+            const dateStr = document.getElementById('oldDate').value;
+            if (!dateStr) {
+                alert('❌ Vui lòng chọn ngày!');
+                return;
+            }
+
+            const fromTime = document.getElementById('oldFromTime').value || '00:00';
+            const toTime = document.getElementById('oldToTime').value || '23:59';
+
+            // Parse datetime
+            const fromDateTime = new Date(`${dateStr}T${fromTime}:00`);
+            const toDateTime = new Date(`${dateStr}T${toTime}:59`);
+            const fromTimestamp = Math.floor(fromDateTime.getTime() / 1000);
+            const toTimestamp = Math.floor(toDateTime.getTime() / 1000);
+
+            console.log('Fetching from:', fromDateTime.toLocaleString('vi-VN'));
+            console.log('Fetching to:', toDateTime.toLocaleString('vi-VN'));
+
+            closeLoadOldModal();
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+
+            try {
+                let allFetchedTxs = [];
+                let before = null;
+                let page = 1;
+                let keepFetching = true;
+
+                while (keepFetching) {
+                    let url = `https://api.helius.xyz/v0/addresses/${wallet}/transactions?api-key=${API_KEY}&limit=100`;
+                    if (before) url += `&before=${before}`;
+
+                    console.log(`📥 Fetching page ${page}...`);
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                    
+                    const data = await response.json();
+                    if (data.length === 0) break;
+
+                    // Check timestamps
+                    const oldestTimestamp = data[data.length - 1].timestamp;
+                    
+                    if (oldestTimestamp > toTimestamp) {
+                        // Still haven't reached target date, keep going
+                        before = data[data.length - 1].signature;
+                        page++;
+                    } else if (oldestTimestamp >= fromTimestamp) {
+                        // We're in the target range
+                        const filteredTxs = data.filter(tx => 
+                            tx.timestamp >= fromTimestamp && tx.timestamp <= toTimestamp
+                        );
+                        allFetchedTxs.push(...filteredTxs);
+                        
+                        if (oldestTimestamp < fromTimestamp) {
+                            keepFetching = false;
+                            console.log('✅ Đã lấy hết giao dịch trong khung giờ');
+                        } else {
+                            before = data[data.length - 1].signature;
+                            page++;
+                        }
+                    } else {
+                        // We've gone past the target date
+                        keepFetching = false;
+                        console.log('✅ Đã qua khung giờ cần tìm');
+                    }
+
+                    // Safety limit
+                    if (page > 100) {
+                        console.log('⚠️ Đã đạt giới hạn trang');
+                        break;
+                    }
+                }
+
+                // Process transactions
+                const newTxs = processTransactions(allFetchedTxs);
+                
+                // Merge with existing data
+                const existingSignatures = new Set(allTransactions.map(tx => tx.signature));
+                const uniqueNewTxs = newTxs.filter(tx => !existingSignatures.has(tx.signature));
+                
+                allTransactions = [...allTransactions, ...uniqueNewTxs];
+                allTransactions.sort((a, b) => b.timestamp - a.timestamp);
+
+                saveToStorage();
+                renderMainTable();
+                updateStats();
+                
+                alert(`✅ Đã tải thêm ${uniqueNewTxs.length} giao dịch cũ từ ${fromDateTime.toLocaleString('vi-VN')} đến ${toDateTime.toLocaleString('vi-VN')}!`);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Lỗi khi tải dữ liệu: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Process transactions helper
+        function processTransactions(txArray) {
+            const processed = [];
+            
+            for (const tx of txArray) {
+                if (!tx.nativeTransfers) continue;
+                
+                for (const transfer of tx.nativeTransfers) {
+                    const solAmount = transfer.amount / 1_000_000_000;
+                    const date = new Date(tx.timestamp * 1000);
+                    
+                    const hours = date.getHours();
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    const period = hours < 12 ? 'SA' : 'CH';
+                    const displayHour = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours);
+                    
+                    processed.push({
+                        timestamp: tx.timestamp,
+                        datetime: `${displayHour}:${minutes} ${period} ${day}/${month}/${year}`,
+                        date: date.toISOString().split('T')[0],
+                        time: `${String(hours).padStart(2, '0')}:${minutes}`,
+                        type: tx.type,
+                        solAmount: solAmount,
+                        toAddress: transfer.toUserAccount,
+                        signature: tx.signature
+                    });
+                }
+            }
+            
+            return processed;
+        }
+
+        // Áp dụng filter
+        function applyFilters() {
+            const minSol = parseFloat(document.getElementById('minSol').value) || 0;
+            const maxSol = parseFloat(document.getElementById('maxSol').value) || Infinity;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const fromTime = document.getElementById('fromTime').value;
+            const toTime = document.getElementById('toTime').value;
+
+            // Check if any filter is active
+            const hasActiveFilter = minSol > 0 || maxSol < Infinity || fromDate || toDate || fromTime || toTime;
+
+            if (!hasActiveFilter) {
+                hideFilteredTable();
+                return;
+            }
+
+            console.log('Applying filters:', { minSol, maxSol, fromDate, toDate, fromTime, toTime });
+
+            filteredTransactions = allTransactions.filter(tx => {
+                // Filter SOL
+                if (tx.solAmount < minSol || tx.solAmount > maxSol) return false;
+                
+                // Filter date range
+                if (fromDate && tx.date < fromDate) return false;
+                if (toDate && tx.date > toDate) return false;
+                
+                // Filter time range
+                if (fromTime || toTime) {
+                    const [txHour, txMinute] = tx.time.split(':').map(Number);
+                    const txTimeInMinutes = txHour * 60 + txMinute;
+                    
+                    if (fromTime) {
+                        const [fh, fm] = fromTime.split(':').map(Number);
+                        const fromTimeInMinutes = fh * 60 + fm;
+                        if (txTimeInMinutes < fromTimeInMinutes) return false;
+                    }
+                    
+                    if (toTime) {
+                        const [th, tm] = toTime.split(':').map(Number);
+                        const toTimeInMinutes = th * 60 + tm;
+                        if (txTimeInMinutes > toTimeInMinutes) return false;
+                    }
+                }
+                
+                return true;
+            });
+
+            console.log(`Filtered: ${filteredTransactions.length} / ${allTransactions.length}`);
+
+            isFilterActive = true;
+            currentFilteredPage = 1;
+            showFilteredTable();
+            renderFilteredTable();
+            updateStorageInfo();
+        }
+
+        function resetFilters() {
+            document.getElementById('minSol').value = '';
+            document.getElementById('maxSol').value = '';
+            document.getElementById('fromDate').value = '';
+            document.getElementById('toDate').value = '';
+            document.getElementById('fromTime').value = '';
+            document.getElementById('toTime').value = '';
+            
+            hideFilteredTable();
+        }
+
+        function showFilteredTable() {
+            document.getElementById('filteredTableContainer').style.display = 'block';
+            document.getElementById('filterResultsBanner').classList.add('active');
+            document.getElementById('filterResultsText').textContent = `Tìm thấy ${filteredTransactions.length} giao dịch phù hợp với điều kiện lọc`;
+        }
+
+        function hideFilteredTable() {
+            document.getElementById('filteredTableContainer').style.display = 'none';
+            document.getElementById('filterResultsBanner').classList.remove('active');
+            isFilterActive = false;
+            filteredTransactions = [];
+            updateStorageInfo();
+        }
+
+        // Render bảng chính (real-time data) - 25 items per page
+        function renderMainTable() {
+            const tbody = document.getElementById('txBody');
+            tbody.innerHTML = '';
+
+            const totalPages = Math.ceil(allTransactions.length / ITEMS_PER_PAGE_MAIN);
+            const start = (currentPage - 1) * ITEMS_PER_PAGE_MAIN;
+            const end = start + ITEMS_PER_PAGE_MAIN;
+            const pageData = allTransactions.slice(start, end);
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6c757d; padding: 40px;">Không có dữ liệu. Vui lòng tải dữ liệu trước!</td></tr>';
+            } else {
+                pageData.forEach(tx => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${tx.datetime}</td>
+                        <td><span class="badge badge-transfer">${tx.type}</span></td>
+                        <td><span class="sol-amount">${tx.solAmount.toFixed(4)} SOL</span></td>
+                        <td><span class="address" onclick="copyToClipboard('${tx.toAddress}')" title="Click để copy">${tx.toAddress}</span></td>
+                        <td><a href="https://solscan.io/tx/${tx.signature}" target="_blank" class="signature" title="Xem trên Solscan">${tx.signature.slice(0,16)}...${tx.signature.slice(-16)}</a></td>
+                    `;
+                });
+            }
+
+            document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPages || 1;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+            
+            updateStats();
+        }
+
+        // Render bảng filtered - 50 items per page
+        function renderFilteredTable() {
+            const tbody = document.getElementById('filteredTxBody');
+            tbody.innerHTML = '';
+
+            const totalPages = Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE_FILTERED);
+            const start = (currentFilteredPage - 1) * ITEMS_PER_PAGE_FILTERED;
+            const end = start + ITEMS_PER_PAGE_FILTERED;
+            const pageData = filteredTransactions.slice(start, end);
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6c757d; padding: 40px;">Không tìm thấy giao dịch phù hợp!</td></tr>';
+            } else {
+                pageData.forEach(tx => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${tx.datetime}</td>
+                        <td><span class="badge badge-transfer">${tx.type}</span></td>
+                        <td><span class="sol-amount">${tx.solAmount.toFixed(4)} SOL</span></td>
+                        <td><span class="address" onclick="copyToClipboard('${tx.toAddress}')" title="Click để copy">${tx.toAddress}</span></td>
+                        <td><a href="https://solscan.io/tx/${tx.signature}" target="_blank" class="signature" title="Xem trên Solscan">${tx.signature.slice(0,16)}...${tx.signature.slice(-16)}</a></td>
+                    `;
+                });
+            }
+
+            document.getElementById('currentFilteredPage').textContent = currentFilteredPage;
+            document.getElementById('totalFilteredPages').textContent = totalPages || 1;
+            document.getElementById('prevFilteredBtn').disabled = currentFilteredPage === 1;
+            document.getElementById('nextFilteredBtn').disabled = currentFilteredPage >= totalPages;
+        }
+
+        function changePage(direction) {
+            const totalPages = Math.ceil(allTransactions.length / ITEMS_PER_PAGE_MAIN);
+            const newPage = currentPage + direction;
+            
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                renderMainTable();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function changeFilteredPage(direction) {
+            const totalPages = Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE_FILTERED);
+            const newPage = currentFilteredPage + direction;
+            
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentFilteredPage = newPage;
+                renderFilteredTable();
+                window.scrollTo({ top: document.getElementById('filteredTableContainer').offsetTop - 100, behavior: 'smooth' });
+            }
+        }
+
+        function updateStats() {
+            const displayData = allTransactions;
+            
+            document.getElementById('totalTxs').textContent = displayData.length;
+            
+            const totalSol = displayData.reduce((sum, tx) => sum + tx.solAmount, 0);
+            document.getElementById('totalSol').textContent = totalSol.toFixed(2);
+            
+            const avgSol = displayData.length > 0 ? totalSol / displayData.length : 0;
+            document.getElementById('avgSol').textContent = avgSol.toFixed(4);
+            
+            if (displayData.length > 0) {
+                const latestDate = displayData[0].datetime.split(' ').slice(2).join(' ');
+                document.getElementById('latestTime').textContent = latestDate;
+            } else {
+                document.getElementById('latestTime').textContent = '-';
+            }
+
+            document.getElementById('lastUpdate').textContent = 
+                `Cập nhật lúc: ${new Date().toLocaleString('vi-VN')}`;
+        }
+
+        function exportData(type) {
+            const dataToExport = type === 'filtered' ? filteredTransactions : allTransactions;
+            
+            if (dataToExport.length === 0) {
+                alert('❌ Không có dữ liệu để export!');
+                return;
+            }
+
+            let csv = 'Ngày giờ,Loại,Số SOL,Đến địa chỉ,Signature\n';
+            dataToExport.forEach(tx => {
+                csv += `"${tx.datetime}","${tx.type}",${tx.solAmount},"${tx.toAddress}","${tx.signature}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `solana_tx_${type}_${Date.now()}.csv`;
+            link.click();
+
+            alert(`✅ Đã export ${dataToExport.length} giao dịch!`);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Silent copy - no alert
+                console.log('✅ Copied:', text);
+            });
+        }
+
+        // Khởi động
+        window.onload = function() {
+            loadFromStorage();
+            if (allTransactions.length > 0) {
+                lastTransactionSignature = allTransactions[0].signature;
+                renderMainTable();
+                updateStats();
+                updateStorageInfo();
+                startAutoRefresh();
+                console.log('✅ Loaded data from storage and started auto-refresh');
+            } else {
+                renderMainTable();
+                updateStats();
+                updateStorageInfo();
+                console.log('ℹ️ No data. Please fetch transactions.');
+            }
+        };
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('oldTxModal');
+            if (event.target == modal) {
+                closeLoadOldModal();
+            }
+        };
+    </script>
+</body>
+</html>
